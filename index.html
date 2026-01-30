@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>KOT - Neon Tic Tac Toe</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <h1>KOT</h1>
+
+  <div class="scoreboard">
+    ❌ Player: <span id="xScore">0</span>
+    🤖 CPU: <span id="oScore">0</span>
+  </div>
+
+  <div class="board">
+    <div class="cell"></div><div class="cell"></div><div class="cell"></div>
+    <div class="cell"></div><div class="cell"></div><div class="cell"></div>
+    <div class="cell"></div><div class="cell"></div><div class="cell"></div>
+  </div>
+
+  <div class="buttons">
+    <button onclick="fullscreen()">Fullscreen</button>
+    <button onclick="resetScore()">Reset Score</button>
+  </div>
+
+  <!-- Winner Overlay -->
+  <div id="overlay" class="overlay">
+    <div id="overlayText"></div>
+  </div>
+
+  <!-- Sounds -->
+  <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3"></audio>
+  <audio id="winSound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
+  <audio id="tieSound" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-retro-game-over-213.mp3"></audio>
+
+  <script src="script.js"></script>
+</body>
+</html>
