@@ -9,18 +9,22 @@ let isGameOver = false;
 let isPcThinking = false;
 
 // Crear tablero
+boardEl.innerHTML = "";
 for (let i = 0; i < 9; i++) {
   const cell = document.createElement("div");
   cell.classList.add("cell");
-  cell.addEventListener("click", () => handleClick(i));
+  cell.addEventListener("click", () => handlePlayerMove(i));
   boardEl.appendChild(cell);
 }
 
+// Cargar score guardado
 loadScore();
 render();
 
-// Click humano
-function handleClick(index) {
+/* =====================
+   MOVIMIENTO DEL JUGADOR
+===================== */
+function handlePlayerMove(index) {
   if (board[index] || isGameOver || isPcThinking) return;
 
   board[index] = "X";
@@ -36,6 +40,7 @@ function handleClick(index) {
     return;
   }
 
+  // Turno de la PC con delay
   isPcThinking = true;
   setTimeout(() => {
     pcMove();
@@ -43,8 +48,12 @@ function handleClick(index) {
   }, 500);
 }
 
-// PC modo difícil
+/* =====================
+   MOVIMIENTO DE LA PC
+===================== */
 function pcMove() {
+  if (isGameOver) return;
+
   const move = bestMove();
   board[move] = "O";
   render();
@@ -59,6 +68,9 @@ function pcMove() {
   }
 }
 
+/* =====================
+   RENDER
+===================== */
 function render() {
   document.querySelectorAll(".cell").forEach((cell, i) => {
     cell.textContent = board[i] || "";
@@ -67,16 +79,70 @@ function render() {
   });
 }
 
-// Minimax
+/* =====================
+   FINAL DEL JUEGO
+===================== */
+function endGame(text, winner) {
+  isGameOver = true;
+  overlayText.textContent = text;
+  overlay.classList.add("show");
+
+  if (winner) saveScore(winner);
+
+  // ⏱️ Reinicio automático a los 1.5 segundos
+  setTimeout(() => {
+    resetGame();
+  }, 1500);
+}
+
+/* =====================
+   RESET
+===================== */
+function resetGame() {
+  board = Array(9).fill(null);
+  isGameOver = false;
+  isPcThinking = false;
+  overlay.classList.remove("show");
+  render();
+}
+
+/* =====================
+   SCORE
+===================== */
+function saveScore(winner) {
+  const score = JSON.parse(localStorage.getItem("kotScore")) || {
+    player: 0,
+    pc: 0
+  };
+
+  score[winner]++;
+  localStorage.setItem("kotScore", JSON.stringify(score));
+  loadScore();
+}
+
+function loadScore() {
+  const score = JSON.parse(localStorage.getItem("kotScore")) || {
+    player: 0,
+    pc: 0
+  };
+
+  playerScoreEl.textContent = score.player;
+  pcScoreEl.textContent = score.pc;
+}
+
+/* =====================
+   IA MODO DIFÍCIL (MINIMAX)
+===================== */
 function bestMove() {
   let bestScore = -Infinity;
-  let move;
+  let move = null;
 
   board.forEach((cell, i) => {
     if (!cell) {
       board[i] = "O";
-      let score = minimax(board, false);
+      const score = minimax(board, false);
       board[i] = null;
+
       if (score > bestScore) {
         bestScore = score;
         move = i;
@@ -87,72 +153,61 @@ function bestMove() {
   return move;
 }
 
-function minimax(board, isMax) {
-  if (checkWinner("O")) return 1;
-  if (checkWinner("X")) return -1;
-  if (isDraw()) return 0;
+function minimax(newBoard, isMaximizing) {
+  if (checkStaticWinner(newBoard, "O")) return 10;
+  if (checkStaticWinner(newBoard, "X")) return -10;
+  if (newBoard.every(c => c !== null)) return 0;
 
-  let best = isMax ? -Infinity : Infinity;
-
-  board.forEach((cell, i) => {
-    if (!cell) {
-      board[i] = isMax ? "O" : "X";
-      let score = minimax(board, !isMax);
-      board[i] = null;
-      best = isMax ? Math.max(score, best) : Math.min(score, best);
-    }
-  });
-
-  return best;
+  if (isMaximizing) {
+    let best = -Infinity;
+    newBoard.forEach((cell, i) => {
+      if (!cell) {
+        newBoard[i] = "O";
+        best = Math.max(best, minimax(newBoard, false));
+        newBoard[i] = null;
+      }
+    });
+    return best;
+  } else {
+    let best = Infinity;
+    newBoard.forEach((cell, i) => {
+      if (!cell) {
+        newBoard[i] = "X";
+        best = Math.min(best, minimax(newBoard, true));
+        newBoard[i] = null;
+      }
+    });
+    return best;
+  }
 }
 
-// Ganador
-function checkWinner(p) {
+/* =====================
+   GANADOR / EMPATE
+===================== */
+function checkWinner(player) {
+  return checkStaticWinner(board, player);
+}
+
+function checkStaticWinner(b, p) {
   const wins = [
     [0,1,2],[3,4,5],[6,7,8],
     [0,3,6],[1,4,7],[2,5,8],
     [0,4,8],[2,4,6]
   ];
-  return wins.some(w => w.every(i => board[i] === p));
+  return wins.some(w => w.every(i => b[i] === p));
 }
 
 function isDraw() {
-  return board.every(c => c);
+  return board.every(cell => cell !== null);
 }
 
-function endGame(text, winner) {
-  isGameOver = true;
-  overlayText.textContent = text;
-  overlay.classList.add("show");
-  if (winner) saveScore(winner);
-}
-
-// Reset
-function resetGame() {
-  board = Array(9).fill(null);
-  isGameOver = false;
-  overlay.classList.remove("show");
-  render();
-}
-
-// Score
-function saveScore(winner) {
-  const score = JSON.parse(localStorage.getItem("kotScore")) || {player:0, pc:0};
-  score[winner]++;
-  localStorage.setItem("kotScore", JSON.stringify(score));
-  loadScore();
-}
-
-function loadScore() {
-  const score = JSON.parse(localStorage.getItem("kotScore")) || {player:0, pc:0};
-  playerScoreEl.textContent = score.player;
-  pcScoreEl.textContent = score.pc;
-}
-
-// Legal modal
+/* =====================
+   MODAL LEGAL
+===================== */
 function openLegal() {
   document.getElementById("legalModal").style.display = "flex";
 }
+
 function closeLegal() {
   document.getElementById("legalModal").style.display = "none";
 }
