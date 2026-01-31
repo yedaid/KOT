@@ -1,39 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>KOT</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <title>KOT – King Of Tic-Tac-Toe</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- SEO -->
+  <meta name="description" content="KOT is a modern neon Tic-Tac-Toe game built with HTML, CSS and JavaScript.">
+
+  <!-- Google AdSense (ADD ONLY AFTER APPROVAL) -->
+  <!--
+  <script async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXX"
+    crossorigin="anonymous"></script>
+  -->
+
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <h1>KOT</h1>
+  <h1 class="title">KOT</h1>
+  <p class="subtitle">King Of Tic-Tac-Toe</p>
 
   <div class="scoreboard">
-    ❌ Player: <span id="xScore">0</span>
-    🤖 CPU: <span id="oScore">0</span>
+    <span>Player X: <strong id="scoreX">0</strong></span>
+    <span>Player O: <strong id="scoreO">0</strong></span>
   </div>
 
-  <div class="board">
-    <div class="cell"></div><div class="cell"></div><div class="cell"></div>
-    <div class="cell"></div><div class="cell"></div><div class="cell"></div>
-    <div class="cell"></div><div class="cell"></div><div class="cell"></div>
+  <div class="board" id="board">
+    <div class="cell" data-index="0"></div>
+    <div class="cell" data-index="1"></div>
+    <div class="cell" data-index="2"></div>
+    <div class="cell" data-index="3"></div>
+    <div class="cell" data-index="4"></div>
+    <div class="cell" data-index="5"></div>
+    <div class="cell" data-index="6"></div>
+    <div class="cell" data-index="7"></div>
+    <div class="cell" data-index="8"></div>
   </div>
 
-  <div class="buttons">
-    <button onclick="fullscreen()">Fullscreen</button>
-    <button onclick="resetScore()">Reset Score</button>
-  </div>
+  <div class="winner" id="winner"></div>
 
-  <!-- Winner Overlay -->
-  <div id="overlay" class="overlay">
-    <div id="overlayText"></div>
-  </div>
+  <!-- Example Ad Position (AFTER APPROVAL) -->
+  <!--
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="ca-pub-XXXXXXXXXXXX"
+       data-ad-slot="1234567890"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
 
-  <!-- Sounds -->
-  <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3"></audio>
-  <audio id="winSound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
-  <audio id="tieSound" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-retro-game-over-213.mp3"></audio>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  -->
+
+  <footer class="footer">
+    <a href="privacy.html">Privacy Policy</a> |
+    <a href="terms.html">Terms of Service</a>
+  </footer>
 
   <script src="script.js"></script>
 </body>
