@@ -1,73 +1,132 @@
-const cells = document.querySelectorAll('.cell');
-const overlay = document.getElementById('overlay');
-const overlayText = document.getElementById('overlayText');
-const scoreXEl = document.getElementById('scoreX');
-const scoreOEl = document.getElementById('scoreO');
+const boardEl = document.getElementById("board");
+const overlay = document.getElementById("overlay");
+const overlayText = document.getElementById("overlayText");
 
-let board = ['', '', '', '', '', '', '', '', ''];
-let currentPlayer = 'X';
-let scoreX = 0;
-let scoreO = 0;
-let gameCount = 0; // For interstitial ads
+let board = Array(9).fill(null);
+let player = "X";
+let pc = "O";
+let scores = JSON.parse(localStorage.getItem("scores")) || { p: 0, c: 0 };
+let gamesPlayed = parseInt(localStorage.getItem("gamesPlayed")) || 0;
 
-const winningCombinations = [
-  [0,1,2],[3,4,5],[6,7,8],
-  [0,3,6],[1,4,7],[2,5,8],
-  [0,4,8],[2,4,6]
-];
+updateScore();
 
-// Add click events
-cells.forEach((cell, idx) => {
-  cell.addEventListener('click', () => makeMove(idx));
-});
-
-function makeMove(idx) {
-  if(board[idx] !== '') return;
-  board[idx] = currentPlayer;
-  cells[idx].textContent = currentPlayer;
-  cells[idx].classList.add(currentPlayer.toLowerCase());
-
-  if(checkWin()) endGame(currentPlayer);
-  else if(board.every(c => c !== '')) endGame('Tie');
-  else currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+for (let i = 0; i < 9; i++) {
+  const cell = document.createElement("div");
+  cell.classList.add("cell");
+  cell.onclick = () => playerMove(i);
+  boardEl.appendChild(cell);
 }
 
-function checkWin() {
-  return winningCombinations.some(combo => combo.every(idx => board[idx] === currentPlayer));
+function playerMove(i) {
+  if (board[i] || checkWinner()) return;
+  board[i] = player;
+  render();
+  if (!checkWinner()) pcMove();
+}
+
+function pcMove() {
+  let best = minimax(board, pc).index;
+  board[best] = pc;
+  render();
+  checkWinner();
+}
+
+function render() {
+  document.querySelectorAll(".cell").forEach((c, i) => {
+    c.textContent = board[i];
+    c.className = "cell";
+    if (board[i]) c.classList.add(board[i].toLowerCase());
+  });
+}
+
+function checkWinner() {
+  const wins = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+  ];
+
+  for (let w of wins) {
+    if (board[w[0]] && board[w[0]] === board[w[1]] && board[w[1]] === board[w[2]]) {
+      endGame(board[w[0]]);
+      return true;
+    }
+  }
+
+  if (!board.includes(null)) endGame("draw");
+  return false;
 }
 
 function endGame(winner) {
-  overlayText.textContent = winner === 'Tie' ? 'TIE!' : `${winner} WINS!`;
-  if(winner === 'X') scoreX++; else if(winner === 'O') scoreO++;
+  overlay.classList.add("show");
+  if (winner === "draw") overlayText.textContent = "DRAW";
+  else overlayText.textContent = winner + " WINS";
+
+  if (winner === player) scores.p++;
+  if (winner === pc) scores.c++;
+
+  gamesPlayed++;
+  localStorage.setItem("gamesPlayed", gamesPlayed);
+  localStorage.setItem("scores", JSON.stringify(scores));
   updateScore();
-  overlay.classList.add('show');
 
-  gameCount++;
-  if(gameCount % 3 === 0) showInterstitialAd();
-
-  setTimeout(() => {
-    overlay.classList.remove('show');
-    resetBoard();
-  }, 2000);
+  if (gamesPlayed % 3 === 0) showAd();
 }
 
-function resetBoard() {
-  board.fill('');
-  cells.forEach(c => { c.textContent=''; c.classList.remove('x','o'); });
-  currentPlayer = 'X';
+function resetGame() {
+  board = Array(9).fill(null);
+  overlay.classList.remove("show");
+  render();
 }
 
 function updateScore() {
-  scoreXEl.textContent = `X: ${scoreX}`;
-  scoreOEl.textContent = `O: ${scoreO}`;
+  document.getElementById("playerScore").textContent = scores.p;
+  document.getElementById("pcScore").textContent = scores.c;
 }
 
-function toggleFullscreen() {
-  if(!document.fullscreenElement) document.documentElement.requestFullscreen();
-  else document.exitFullscreen();
+/* IA IMPOSIBLE */
+function minimax(newBoard, playerTurn) {
+  const avail = newBoard.map((v,i)=>v===null?i:null).filter(v=>v!==null);
+  if (checkStatic(newBoard, player)) return {score:-10};
+  if (checkStatic(newBoard, pc)) return {score:10};
+  if (avail.length === 0) return {score:0};
+
+  let moves = [];
+  for (let i of avail) {
+    let move = {};
+    move.index = i;
+    newBoard[i] = playerTurn;
+    move.score = minimax(newBoard, playerTurn === pc ? player : pc).score;
+    newBoard[i] = null;
+    moves.push(move);
+  }
+
+  return playerTurn === pc
+    ? moves.reduce((a,b)=>a.score>b.score?a:b)
+    : moves.reduce((a,b)=>a.score<b.score?a:b);
 }
 
-function showInterstitialAd() {
-  // Replace with real Google AdSense interstitial if approved
-  console.log("Interstitial ad placeholder");
+function checkStatic(b, p) {
+  return [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]
+    .some(w => b[w[0]]===p && b[w[1]]===p && b[w[2]]===p);
 }
+
+/* Ads + Legal */
+function showAd() {
+  document.getElementById("adInterstitial").classList.add("show");
+  (adsbygoogle = window.adsbygoogle || []).push({});
+}
+
+function closeAd() {
+  document.getElementById("adInterstitial").classList.remove("show");
+}
+
+function openLegal() {
+  document.getElementById("legalModal").style.display = "flex";
+}
+
+function closeLegal() {
+  document.getElementById("legalModal").style.display = "none";
+}
+
+(adsbygoogle = window.adsbygoogle || []).push({});
