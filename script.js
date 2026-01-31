@@ -3,12 +3,19 @@ const overlay = document.getElementById("overlay");
 const overlayText = document.getElementById("overlayText");
 const playerScoreEl = document.getElementById("playerScore");
 const pcScoreEl = document.getElementById("pcScore");
+const fullscreenBtn = document.getElementById("fullscreenBtn");
 
 let board = Array(9).fill(null);
 let isGameOver = false;
 let isPcThinking = false;
 
-// Crear tablero
+// X = Player, O = PC
+let startingPlayer = localStorage.getItem("startingPlayer") || "X";
+let currentTurn = startingPlayer;
+
+/* =====================
+   INICIALIZAR TABLERO
+===================== */
 boardEl.innerHTML = "";
 for (let i = 0; i < 9; i++) {
   const cell = document.createElement("div");
@@ -17,17 +24,23 @@ for (let i = 0; i < 9; i++) {
   boardEl.appendChild(cell);
 }
 
-// Cargar score guardado
 loadScore();
 render();
+autoStartIfPc();
 
 /* =====================
-   MOVIMIENTO DEL JUGADOR
+   TURNO PLAYER
 ===================== */
 function handlePlayerMove(index) {
-  if (board[index] || isGameOver || isPcThinking) return;
+  if (
+    board[index] ||
+    isGameOver ||
+    isPcThinking ||
+    currentTurn !== "X"
+  ) return;
 
   board[index] = "X";
+  currentTurn = "O";
   render();
 
   if (checkWinner("X")) {
@@ -40,7 +53,13 @@ function handlePlayerMove(index) {
     return;
   }
 
-  // Turno de la PC con delay
+  pcThinking();
+}
+
+/* =====================
+   TURNO PC
+===================== */
+function pcThinking() {
   isPcThinking = true;
   setTimeout(() => {
     pcMove();
@@ -48,14 +67,12 @@ function handlePlayerMove(index) {
   }, 500);
 }
 
-/* =====================
-   MOVIMIENTO DE LA PC
-===================== */
 function pcMove() {
-  if (isGameOver) return;
+  if (isGameOver || currentTurn !== "O") return;
 
   const move = bestMove();
   board[move] = "O";
+  currentTurn = "X";
   render();
 
   if (checkWinner("O")) {
@@ -66,6 +83,49 @@ function pcMove() {
   if (isDraw()) {
     endGame("DRAW");
   }
+}
+
+/* =====================
+   AUTO INICIO SI PC EMPIEZA
+===================== */
+function autoStartIfPc() {
+  if (currentTurn === "O") {
+    pcThinking();
+  }
+}
+
+/* =====================
+   FINAL DEL JUEGO
+===================== */
+function endGame(text, winner) {
+  isGameOver = true;
+  overlayText.textContent = text;
+  overlay.classList.add("show");
+
+  if (winner) saveScore(winner);
+
+  setTimeout(() => {
+    resetGame();
+  }, 1500);
+}
+
+/* =====================
+   RESET + ALTERNAR TURNO
+===================== */
+function resetGame() {
+  board = Array(9).fill(null);
+  isGameOver = false;
+  isPcThinking = false;
+
+  // alternar quien empieza
+  startingPlayer = startingPlayer === "X" ? "O" : "X";
+  localStorage.setItem("startingPlayer", startingPlayer);
+
+  currentTurn = startingPlayer;
+
+  overlay.classList.remove("show");
+  render();
+  autoStartIfPc();
 }
 
 /* =====================
@@ -80,33 +140,6 @@ function render() {
 }
 
 /* =====================
-   FINAL DEL JUEGO
-===================== */
-function endGame(text, winner) {
-  isGameOver = true;
-  overlayText.textContent = text;
-  overlay.classList.add("show");
-
-  if (winner) saveScore(winner);
-
-  // ⏱️ Reinicio automático a los 1.5 segundos
-  setTimeout(() => {
-    resetGame();
-  }, 1500);
-}
-
-/* =====================
-   RESET
-===================== */
-function resetGame() {
-  board = Array(9).fill(null);
-  isGameOver = false;
-  isPcThinking = false;
-  overlay.classList.remove("show");
-  render();
-}
-
-/* =====================
    SCORE
 ===================== */
 function saveScore(winner) {
@@ -114,7 +147,6 @@ function saveScore(winner) {
     player: 0,
     pc: 0
   };
-
   score[winner]++;
   localStorage.setItem("kotScore", JSON.stringify(score));
   loadScore();
@@ -125,24 +157,22 @@ function loadScore() {
     player: 0,
     pc: 0
   };
-
   playerScoreEl.textContent = score.player;
   pcScoreEl.textContent = score.pc;
 }
 
 /* =====================
-   IA MODO DIFÍCIL (MINIMAX)
+   IA MINIMAX (DIFÍCIL)
 ===================== */
 function bestMove() {
   let bestScore = -Infinity;
-  let move = null;
+  let move;
 
   board.forEach((cell, i) => {
     if (!cell) {
       board[i] = "O";
       const score = minimax(board, false);
       board[i] = null;
-
       if (score > bestScore) {
         bestScore = score;
         move = i;
@@ -153,28 +183,28 @@ function bestMove() {
   return move;
 }
 
-function minimax(newBoard, isMaximizing) {
-  if (checkStaticWinner(newBoard, "O")) return 10;
-  if (checkStaticWinner(newBoard, "X")) return -10;
-  if (newBoard.every(c => c !== null)) return 0;
+function minimax(b, isMax) {
+  if (checkStaticWinner(b, "O")) return 10;
+  if (checkStaticWinner(b, "X")) return -10;
+  if (b.every(c => c)) return 0;
 
-  if (isMaximizing) {
+  if (isMax) {
     let best = -Infinity;
-    newBoard.forEach((cell, i) => {
-      if (!cell) {
-        newBoard[i] = "O";
-        best = Math.max(best, minimax(newBoard, false));
-        newBoard[i] = null;
+    b.forEach((c, i) => {
+      if (!c) {
+        b[i] = "O";
+        best = Math.max(best, minimax(b, false));
+        b[i] = null;
       }
     });
     return best;
   } else {
     let best = Infinity;
-    newBoard.forEach((cell, i) => {
-      if (!cell) {
-        newBoard[i] = "X";
-        best = Math.min(best, minimax(newBoard, true));
-        newBoard[i] = null;
+    b.forEach((c, i) => {
+      if (!c) {
+        b[i] = "X";
+        best = Math.min(best, minimax(b, true));
+        b[i] = null;
       }
     });
     return best;
@@ -184,8 +214,8 @@ function minimax(newBoard, isMaximizing) {
 /* =====================
    GANADOR / EMPATE
 ===================== */
-function checkWinner(player) {
-  return checkStaticWinner(board, player);
+function checkWinner(p) {
+  return checkStaticWinner(board, p);
 }
 
 function checkStaticWinner(b, p) {
@@ -198,7 +228,20 @@ function checkStaticWinner(b, p) {
 }
 
 function isDraw() {
-  return board.every(cell => cell !== null);
+  return board.every(c => c);
+}
+
+/* =====================
+   FULLSCREEN
+===================== */
+fullscreenBtn.addEventListener("click", toggleFullscreen);
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
 }
 
 /* =====================
