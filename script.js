@@ -1,94 +1,73 @@
-const PLAYER_X = "✕";
-const PLAYER_O = "◯";
+const cells = document.querySelectorAll('.cell');
+const overlay = document.getElementById('overlay');
+const overlayText = document.getElementById('overlayText');
+const scoreXEl = document.getElementById('scoreX');
+const scoreOEl = document.getElementById('scoreO');
 
-const cells = document.querySelectorAll(".cell");
-const winnerBox = document.getElementById("winner");
-const scoreX = document.getElementById("scoreX");
-const scoreO = document.getElementById("scoreO");
+let board = ['', '', '', '', '', '', '', '', ''];
+let currentPlayer = 'X';
+let scoreX = 0;
+let scoreO = 0;
+let gameCount = 0; // For interstitial ads
 
-let currentPlayer = PLAYER_X;
-let board = Array(9).fill("");
-let gameOver = false;
-
-let scores = { x: 0, o: 0 };
-let gameCount = 0;
-
-const winPatterns = [
+const winningCombinations = [
   [0,1,2],[3,4,5],[6,7,8],
   [0,3,6],[1,4,7],[2,5,8],
   [0,4,8],[2,4,6]
 ];
 
-cells.forEach((cell, index) => {
-  cell.addEventListener("click", () => {
-    if (board[index] || gameOver) return;
-
-    board[index] = currentPlayer;
-    cell.textContent = currentPlayer;
-
-    if (checkWin()) {
-      endGame(${currentPlayer === PLAYER_X ? "Player ✕ Wins!" : "Player ◯ Wins!"});
-      updateScore();
-      return;
-    }
-
-    if (!board.includes("")) {
-      endGame("Draw!");
-      return;
-    }
-
-    currentPlayer = currentPlayer === PLAYER_X ? PLAYER_O : PLAYER_X;
-  });
+// Add click events
+cells.forEach((cell, idx) => {
+  cell.addEventListener('click', () => makeMove(idx));
 });
 
+function makeMove(idx) {
+  if(board[idx] !== '') return;
+  board[idx] = currentPlayer;
+  cells[idx].textContent = currentPlayer;
+  cells[idx].classList.add(currentPlayer.toLowerCase());
+
+  if(checkWin()) endGame(currentPlayer);
+  else if(board.every(c => c !== '')) endGame('Tie');
+  else currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+}
+
 function checkWin() {
-  return winPatterns.some(pattern =>
-    pattern.every(i => board[i] === currentPlayer)
-  );
+  return winningCombinations.some(combo => combo.every(idx => board[idx] === currentPlayer));
 }
 
-function updateScore() {
-  if (currentPlayer === PLAYER_X) {
-    scores.x++;
-    scoreX.textContent = scores.x;
-  } else {
-    scores.o++;
-    scoreO.textContent = scores.o;
-  }
-}
+function endGame(winner) {
+  overlayText.textContent = winner === 'Tie' ? 'TIE!' : `${winner} WINS!`;
+  if(winner === 'X') scoreX++; else if(winner === 'O') scoreO++;
+  updateScore();
+  overlay.classList.add('show');
 
-function endGame(message) {
-  winnerBox.textContent = message;
-  gameOver = true;
+  gameCount++;
+  if(gameCount % 3 === 0) showInterstitialAd();
 
   setTimeout(() => {
-    resetGame();
+    overlay.classList.remove('show');
+    resetBoard();
   }, 2000);
 }
 
-function resetGame() {
-  board.fill("");
-  cells.forEach(c => c.textContent = "");
-  winnerBox.textContent = "";
-  currentPlayer = PLAYER_X;
-  gameOver = false;
-
-  gameCount++;
-
-  if (gameCount % 3 === 0) {
-    enableInterstitialAds();
-  }
+function resetBoard() {
+  board.fill('');
+  cells.forEach(c => { c.textContent=''; c.classList.remove('x','o'); });
+  currentPlayer = 'X';
 }
 
-function enableInterstitialAds() {
-  if (!window.adsbygoogle) return;
+function updateScore() {
+  scoreXEl.textContent = `X: ${scoreX}`;
+  scoreOEl.textContent = `O: ${scoreO}`;
+}
 
-  try {
-    (adsbygoogle = window.adsbygoogle || []).push({
-      google_ad_client: "ca-pub-XXXXXXXXXXXX",
-      enable_page_level_ads: true
-    });
-  } catch (e) {
-    console.log("Interstitial not ready");
-  }
+function toggleFullscreen() {
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen();
+  else document.exitFullscreen();
+}
+
+function showInterstitialAd() {
+  // Replace with real Google AdSense interstitial if approved
+  console.log("Interstitial ad placeholder");
 }

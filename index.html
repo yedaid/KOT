@@ -1,65 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>KOT – King Of Tic-Tac-Toe</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- SEO -->
-  <meta name="description" content="KOT is a modern neon Tic-Tac-Toe game built with HTML, CSS and JavaScript.">
-
-  <!-- Google AdSense (ADD ONLY AFTER APPROVAL) -->
-  <!--
-  <script async
-    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXX"
-    crossorigin="anonymous"></script>
-  -->
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KOT - Hard Mode</title>
   <link rel="stylesheet" href="style.css">
+  <!-- Google AdSense -->
+  <script data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 </head>
 <body>
-
-  <h1 class="title">KOT</h1>
-  <p class="subtitle">King Of Tic-Tac-Toe</p>
-
+  <h1>KOT</h1>
   <div class="scoreboard">
-    <span>Player X: <strong id="scoreX">0</strong></span>
-    <span>Player O: <strong id="scoreO">0</strong></span>
+    <span id="scoreX">X: 0</span> | <span id="scoreO">O: 0</span>
   </div>
 
-  <div class="board" id="board">
-    <div class="cell" data-index="0"></div>
-    <div class="cell" data-index="1"></div>
-    <div class="cell" data-index="2"></div>
-    <div class="cell" data-index="3"></div>
-    <div class="cell" data-index="4"></div>
-    <div class="cell" data-index="5"></div>
-    <div class="cell" data-index="6"></div>
-    <div class="cell" data-index="7"></div>
-    <div class="cell" data-index="8"></div>
+  <div class="board">
+    <div class="cell"></div><div class="cell"></div><div class="cell"></div>
+    <div class="cell"></div><div class="cell"></div><div class="cell"></div>
+    <div class="cell"></div><div class="cell"></div><div class="cell"></div>
   </div>
 
-  <div class="winner" id="winner"></div>
+  <div class="buttons">
+    <button onclick="resetBoard()">Reset</button>
+    <button onclick="toggleFullscreen()">Fullscreen</button>
+  </div>
 
-  <!-- Example Ad Position (AFTER APPROVAL) -->
-  <!--
-  <ins class="adsbygoogle"
-       style="display:block"
-       data-ad-client="ca-pub-XXXXXXXXXXXX"
-       data-ad-slot="1234567890"
-       data-ad-format="auto"
-       data-full-width-responsive="true"></ins>
+  <!-- Winner Overlay -->
+  <div id="overlay" class="overlay">
+    <span id="overlayText"></span>
+  </div>
 
-  <script>
-    (adsbygoogle = window.adsbygoogle || []).push({});
-  </script>
-  -->
-
-  <footer class="footer">
-    <a href="privacy.html">Privacy Policy</a> |
-    <a href="terms.html">Terms of Service</a>
+  <!-- Footer with AdSense banner -->
+  <footer>
+    <p><a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-slot="YYYYYYYYYY"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
   </footer>
 
   <script src="script.js"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
 </body>
 </html>
